@@ -23,21 +23,21 @@ pass "no TLS-stripping code in vendored sources"
 [ "$SOURCE_ONLY" = "1" ] && { echo "Source-only mode: check 1 passed."; exit 0; }
 
 # 2. Image exists
-docker image inspect orpheusdl:hardened > /dev/null 2>&1 || fail "image orpheusdl:hardened not built"
+docker image inspect "${ORPHEUS_IMAGE:-orpheusdl:hardened}" > /dev/null 2>&1 || fail "image ${ORPHEUS_IMAGE:-orpheusdl:hardened} not built"
 
 # 3. Container runs as non-root uid 1000
-uid="$(docker run --rm orpheusdl:hardened id -u)"
+uid="$(docker run --rm "${ORPHEUS_IMAGE:-orpheusdl:hardened}" id -u)"
 [ "$uid" = "1000" ] || fail "container uid is $uid, expected 1000"
 pass "container runs as uid 1000"
 
 # 4. Tidal module loads in the image
-docker run --rm orpheusdl:hardened python -c \
+docker run --rm "${ORPHEUS_IMAGE:-orpheusdl:hardened}" python -c \
   "import sys; sys.path.insert(0, '/orpheus'); from modules.tidal.interface import module_information as mi; assert mi.service_name == 'TIDAL'" \
   || fail "tidal module failed to import in image"
 pass "tidal module imports in image"
 
 # 5. ffmpeg binary present in image
-docker run --rm orpheusdl:hardened ffmpeg -version > /dev/null 2>&1 || fail "ffmpeg missing in image"
+docker run --rm "${ORPHEUS_IMAGE:-orpheusdl:hardened}" ffmpeg -version > /dev/null 2>&1 || fail "ffmpeg missing in image"
 pass "ffmpeg present in image"
 
 echo "All hardening checks passed."

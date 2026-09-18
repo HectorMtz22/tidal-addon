@@ -5,9 +5,6 @@ on:
     branches: [main]
   workflow_dispatch:
 
-env:
-  IMAGE: ghcr.io/${{ github.repository }}
-
 permissions:
   contents: read
   packages: write
@@ -17,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Compute lowercase image name
+        run: echo "IMAGE_LC=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Source-level hardening gate
         run: ./tests/hardening.sh --source-only
@@ -32,17 +32,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build image
-        run: docker build -f docker/Dockerfile -t ghcr.io/${IMAGE,,}:latest -t ghcr.io/${IMAGE,,}:${GITHUB_SHA} .
+        run: docker build -f docker/Dockerfile -t $IMAGE_LC:latest -t $IMAGE_LC:${GITHUB_SHA} .
 
       - name: Full hardening suite (requires the image)
+        env:
+          ORPHEUS_IMAGE: ${{ env.IMAGE_LC }}:${{ github.sha }}
         run: ./tests/hardening.sh
         # All five checks must pass before anything is published.
 
       - name: Push image
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push ghcr.io/${IMAGE,,}:latest
-          docker push ghcr.io/${IMAGE,,}:${GITHUB_SHA}
+          docker push $IMAGE_LC:latest
+          docker push $IMAGE_LC:${GITHUB_SHA}
 
       # First push creates the package PRIVATE. Flip it once in the UI:
       # GitHub profile -> Packages -> tidal-addon -> Package settings ->
