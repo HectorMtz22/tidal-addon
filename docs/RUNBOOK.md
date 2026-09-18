@@ -36,17 +36,22 @@ Clone on the NAS:
 ```sh
 git clone https://github.com/HectorMtz22/tidal-addon /opt/tidal-addon
 cd /opt/tidal-addon
-./tests/hardening.sh          # check 1 passes; image checks FAIL until built
+```
 
-# Option A: build on the NAS (never build on the Mac)
+The compose file (`deploy/orpheusdl-compose.truenas.yml`) already points at the
+CI image `ghcr.io/hectormtz22/tidal-addon:latest` — that is the default path:
+
+```sh
+docker pull ghcr.io/hectormtz22/tidal-addon:latest
+ORPHEUS_IMAGE=ghcr.io/hectormtz22/tidal-addon:latest ./tests/hardening.sh   # all five PASS
+```
+
+Option A (fallback, build on the NAS — never build on the Mac):
+
+```sh
 docker build -f docker/Dockerfile -t orpheusdl:hardened .
 ./tests/hardening.sh          # all five checks PASS
-
-# Option B: pull the CI-published image instead of building
-docker pull ghcr.io/hectormtz22/tidal-addon:latest
-# then point deploy/orpheusdl-compose.truenas.yml at
-# ghcr.io/hectormtz22/tidal-addon:latest instead of orpheusdl:hardened, and run:
-ORPHEUS_IMAGE=ghcr.io/hectormtz22/tidal-addon:latest ./tests/hardening.sh
+# then edit deploy/orpheusdl-compose.truenas.yml image: back to orpheusdl:hardened
 ```
 
 (The previous rsync path still works if you ever want an unpublished copy:
