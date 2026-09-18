@@ -1,22 +1,22 @@
 # OrpheusDL (hardened vendored fork) — TrueNAS custom app.
-# Image comes from CI: built on every push to main after the hardening suite
-# passes (ghcr.io/hectormtz22/tidal-addon:latest). One-time: make the package
-# public (GitHub profile -> Packages -> tidal-addon -> Change visibility).
+# Build the image on the NAS first: docker build -f docker/Dockerfile -t orpheusdl:hardened <repo-dir>
 # No ports: exec-driven only (docker exec -it orpheusdl python orpheus.py).
 services:
   orpheusdl:
-    image: ghcr.io/hectormtz22/tidal-addon:latest
+    image: orpheusdl:hardened
     container_name: orpheusdl
     user: "1000:1000"
     command: ["sleep", "infinity"]
     read_only: true
     tmpfs:
       - /tmp
+      - /orpheus/extensions
+      - /orpheus/temp
     cap_drop:
       - ALL
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
     volumes:
-      - /mnt/drive/music:/orpheus/music
-      - /mnt/drive/apps/orpheusdl/config:/orpheus/config
+      - /mnt/tank/music:/orpheus/music
+      - /mnt/tank/apps/orpheusdl/config:/orpheus/config
