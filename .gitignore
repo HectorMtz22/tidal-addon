@@ -8,3 +8,7 @@ downloads/
 
 # macos noise
 .DS_Store
+
+# bytecode
+__pycache__/
+*.pyc

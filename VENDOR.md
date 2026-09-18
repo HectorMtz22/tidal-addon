@@ -1,7 +1,27 @@
 # Vendored upstreams
 
 Both vendored codebases have NO license file ("all rights reserved" formally).
-This repo and its vendored code are LOCAL-ONLY — never publish, never push.
+
+## Publishing decision (user override, 2026-09-18)
+
+The original rule was "local fork only, never publish" because of the missing
+license. The user explicitly overrode that rule on 2026-09-18 and directed that
+this repo (with the vendored code, flattened) be published publicly. This is
+redistribution of all-rights-reserved code — the accepted risk belongs to the
+repository owner. Upstream repos are unaffected; takedowns are possible if
+upstream objects.
+
+## How the vendoring works now (flattened)
+
+The vendored code is committed as PLAIN FILES in this repo — the nested git
+clones were flattened (their `.git` dirs and dev-noise `.gitignore` files were
+removed). There are no gitlinks or submodules. The pinned upstream commits
+below remain the provenance record; the vendored trees are snapshots.
+
+Updates therefore work like this (see docs/review-workflow.md for the full
+checklist): clone the upstream fresh, `git diff` its tree against the vendored
+directory, review the full diff, then apply changes — never `git pull` a
+nested repo (none exists anymore).
 
 | Vendored dir                                 | Upstream                                         | Pinned commit                            | Reviewed                             | Notes                                                                                                                                          |
 |----------------------------------------------|--------------------------------------------------|------------------------------------------|--------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -9,15 +29,18 @@ This repo and its vendored code are LOCAL-ONLY — never publish, never push.
 | vendor/orpheusdl-tidal                       | https://github.com/Dniel97/orpheusdl-tidal       | 0d805ff5bf88441690a59c06c8c0dc1ae4fcbf3c | 2026-09 (two full source reviews)    | Active Dec 2025                                                                                                                                |
 | vendor/orpheusdl-tidal/mqa_identifier_python | https://github.com/Dniel97/MQA-identifier-python | ff0c9f1824d471d95ee8faf88af19325dc617d90 | 2026-09 (source review at vendoring) | Git submodule of orpheusdl-tidal missed by initial vendoring; nayuki FLAC decoder (MIT) + MQA bit analysis; no network, no subprocess, no eval |
 
-TLS hardening is committed on top of each pinned snapshot:
+TLS hardening is applied to the vendored files (its introduction is recorded in
+this repo's git history):
 - framework: remove `CURL_CA_BUNDLE` env deletion + `urllib3.disable_warnings` (orpheus/core.py),
   remove `verify=False` (utils/utils.py:47).
 - module: remove `verify=False` (interface.py:841); remove `urllib3.disable_warnings` +
   unused `import urllib3` (tidal_api.py).
 
-The `mqa_identifier_python` snapshot was vendored as files WITHOUT git history:
-future updates require re-cloning upstream and a full re-review. The stale
-`.gitmodules` that referred to that vendored-as-files snapshot has been deleted
-from the tidal clone — never run `git submodule update` there.
+The `mqa_identifier_python` snapshot was vendored WITHOUT git history: future
+updates require re-cloning upstream and a full re-review.
 
-Any future change requires the diff review in docs/review-workflow.md first.
+The framework's `modules/example` is excluded from the container image via
+`.dockerignore` (it stays in the repo for reference).
+
+Any future change to vendored code requires the diff review in
+docs/review-workflow.md first.
