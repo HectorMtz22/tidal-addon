@@ -6,22 +6,21 @@ in the terminal).
 
 ## 1. Datasets (TrueNAS shell or UI)
 
-```sh
-zfs create drive/music
-zfs create -p drive/orpheusdl/config
-```
+Your music library already exists (Navidrome is serving it) — **never change
+its owner**. The OrpheusDL container runs as the TrueNAS `apps` user/group
+(uid 568, the same one catalog apps use), so it joins your library's existing
+ACLs as-is: no chown, no chmod, nothing on the dataset.
 
-If the pool is not `drive`, substitute your pool name everywhere (including
-deploy/orpheusdl-compose.truenas.yml).
-
-Set ownership for the app user — nothing to do if the dataset already has
-TrueNAS app ACLs (uid 568, the same user catalog apps like Navidrome use;
-the container runs as 568 by default in the compose). Only if your dataset
-is root-owned with no ACLs, grant write access:
+Only the OrpheusDL **config** dataset needs to exist and be writable by the
+apps user (new dataset, not your library):
 
 ```sh
-chown 1000:1000 /mnt/drive/music-library   # or set ACLs in the TrueNAS UI
+zfs create -p drive/orpheusdl/config   # substitute your pool name if not `drive`
 ```
+
+Grant it to the apps group via the UI (Datasets → drive/orpheusdl/config →
+Permissions → Edit ACL → add entry: Group `apps` / gid 568, Modify + Traverse,
+apply recursively) — an ACL entry does not change the owner.
 
 ## 2. Get the repo + image onto the NAS
 
@@ -86,11 +85,10 @@ docker exec -it orpheusdl python orpheus.py
 - After login, immediately lock the credential file down:
 
 ```sh
-chmod 700 /mnt/drive/orpheusdl/config
-chmod 600 /mnt/drive/orpheusdl/config/loginstorage.bin
+docker exec orpheusdl sh -c "chmod 700 /orpheus/config && chmod 600 /orpheus/config/loginstorage.bin"
 
-stat -c '%a' /mnt/drive/orpheusdl/config                  # expect 700
-stat -c '%a' /mnt/drive/orpheusdl/config/loginstorage.bin # expect 600
+docker exec orpheusdl sh -c "stat -c '%a' /orpheus/config; stat -c '%a' /orpheus/config/loginstorage.bin"
+# expect: 700 and 600
 ```
 
 `loginstorage.bin` is a plaintext pickle of your Tidal access+refresh tokens —
@@ -138,7 +136,7 @@ If `loginstorage.bin` or the config dataset is exposed:
 
 1. Change your Tidal password immediately.
 2. Tidal web → Settings → sign out of ALL devices (invalidates refresh tokens).
-3. Delete `loginstorage.bin`, re-login with the TV flow, re-apply chmod 700/600.
+3. Delete `loginstorage.bin`, re-login with the TV flow, re-apply the `docker exec` chmod from §4.
 
 ## 9. Known limits
 
