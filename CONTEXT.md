@@ -23,10 +23,10 @@ Repo: https://github.com/HectorMtz22/youtube-addon (public). Local: /Users/kilo/
 - Deployment doc: docs/RUNBOOK.md (TrueNAS custom-app section + plain Docker + iPhone verification checklist).
 - Spec + plan kept locally ONLY (gitignored): docs/superpowers/spec-2026-09-17.md, plan-2026-09-17.md.
 
-## Completed work — tidal-archive (local-only repo, merged to main)
-Repo: /Users/kilo/dev/tidal-addon (git, NO remote — never push; vendored code has no license).
+## Completed work — tidal-archive (public repo, merged to main)
+Repo: https://github.com/HectorMtz22/tidal-addon (PUBLIC — user explicitly overrode the "never publish / no license" rule on 2026-09-18; risk accepted, recorded in VENDOR.md). Local: /Users/kilo/dev/tidal-addon (branch main, remote = github SSH).
 - Vendors the reviewed OrpheusDL framework (yarrm80s/orpheusdl @ a45ff47) and Dniel97/orpheusdl-tidal @ 0d805ff as nested git clones with TLS-hardening commits on top (CURL_CA_BUNDLE, disable_warnings, verify=False all removed; also mqa_identifier_python vendored @ ff0c9f1).
-- docker/Dockerfile: python:3.11-slim, ffmpeg, uid 1000, sleep infinity; build on NAS with `-f docker/Dockerfile -t orpheusdl:hardened .` (Docker is NEVER run on the Mac — user directive).
+- Docker image: CI-published ghcr.io/hectormtz22/tidal-addon:latest on every main push (docker-publish.yml: build -> hardening.sh all-PASS -> push); one-time UI flip makes the package public. NAS can clone the repo or pull the image (RUNBOOK §2 Option A/B).
 - deploy/orpheusdl-compose.truenas.yml (custom app; no ports, cap_drop ALL, read_only, tmpfs, user 1000); tests/hardening.sh (check 1 = source TLS gate, runs anywhere; checks 2–5 need the image, run on NAS).
 - docs/RUNBOOK.md (datasets, NAS build, TV-only login, chmod 700/600, settings download_path=/orpheus/music/, Navidrome catalog app + iPhone checklist, leak response) + docs/review-workflow.md (mandatory upstream diff review) + VENDOR.md (pinned refs + hardening record).
 - Spec + plan: docs/superpowers/specs/2026-09-18-tidal-archive-design.md, docs/superpowers/plans/2026-09-18-tidal-archive.md. Full subagent-driven execution with reviews; final review fixes merged.
