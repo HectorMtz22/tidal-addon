@@ -7,7 +7,9 @@ services:
   orpheusdl:
     image: ghcr.io/hectormtz22/tidal-addon:latest
     container_name: orpheusdl
-    user: "1000:1000"
+    # uid 568 = TrueNAS "apps" user — the same uid catalog apps use, so the
+    # dataset's existing ACLs (Navidrome already reads/writes them) apply as-is.
+    user: "568:568"
     # No command override: the image ENTRYPOINT pre-creates /tmp dirs, then
     # the image CMD idles (sleep infinity). Overriding command here would
     # bypass the ENTRYPOINT chain — leave it absent.

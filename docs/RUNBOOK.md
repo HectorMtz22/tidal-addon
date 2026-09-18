@@ -14,12 +14,13 @@ zfs create -p drive/orpheusdl/config
 If the pool is not `drive`, substitute your pool name everywhere (including
 deploy/orpheusdl-compose.truenas.yml).
 
-Set ownership for the container's uid 1000:
+Set ownership for the app user — nothing to do if the dataset already has
+TrueNAS app ACLs (uid 568, the same user catalog apps like Navidrome use;
+the container runs as 568 by default in the compose). Only if your dataset
+is root-owned with no ACLs, grant write access:
 
 ```sh
-chown -R 1000:1000 /mnt/drive/orpheusdl/config
-# container uid 1000 needs write access:
-chown 1000:1000 /mnt/drive/music
+chown 1000:1000 /mnt/drive/music-library   # or set ACLs in the TrueNAS UI
 ```
 
 ## 2. Get the repo + image onto the NAS
