@@ -22,4 +22,4 @@ RUN useradd -u 1000 -m orpheus \
 USER orpheus
 WORKDIR /orpheus
 
-CMD ["sleep", "infinity"]
+CMD ["sh", "-c", "mkdir -p /tmp/extensions /tmp/temp && sleep infinity"]
