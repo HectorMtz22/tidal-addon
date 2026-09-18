@@ -32,7 +32,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build image
-        run: docker build -f docker/Dockerfile -t $IMAGE:latest -t $IMAGE:${{ github.sha }} .
+        run: docker build -f docker/Dockerfile -t ghcr.io/${IMAGE,,}:latest -t ghcr.io/${IMAGE,,}:${GITHUB_SHA} .
 
       - name: Full hardening suite (requires the image)
         run: ./tests/hardening.sh
@@ -41,8 +41,8 @@ jobs:
       - name: Push image
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push $IMAGE:latest
-          docker push $IMAGE:${{ github.sha }}
+          docker push ghcr.io/${IMAGE,,}:latest
+          docker push ghcr.io/${IMAGE,,}:${GITHUB_SHA}
 
       # First push creates the package PRIVATE. Flip it once in the UI:
       # GitHub profile -> Packages -> tidal-addon -> Package settings ->
