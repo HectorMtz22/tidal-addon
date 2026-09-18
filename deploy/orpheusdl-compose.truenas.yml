@@ -6,7 +6,7 @@ services:
     image: orpheusdl:hardened
     container_name: orpheusdl
     user: "1000:1000"
-    command: ["sleep", "infinity"]
+    command: ["sh", "-c", "mkdir -p /tmp/extensions /tmp/temp && sleep infinity"]
     read_only: true
     tmpfs:
       - /tmp
