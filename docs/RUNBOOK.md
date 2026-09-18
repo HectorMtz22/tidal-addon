@@ -24,24 +24,34 @@ chown 1000:1000 /mnt/tank/music
 
 ## 2. Get the repo + image onto the NAS
 
-From the Mac (repo is local-only; no GitHub push, no Docker builds on the Mac):
+The repo is public now (user override, see VENDOR.md): the NAS can clone it
+directly, and the CI-published image can be pulled instead of built. The
+GitHub Action on every push to main builds the image and publishes
+`ghcr.io/hectormtz22/tidal-addon:latest` (+ a sha tag) after the hardening
+suite passes in CI. One-time: make the package public (GitHub profile ->
+Packages -> tidal-addon -> Package settings -> Change visibility -> Public).
+
+Clone on the NAS:
 
 ```sh
-rsync -a /Users/kilo/dev/tidal-addon/ nas:/opt/tidal-addon/
-```
-
-(Do not exclude `.git`: the vendored clones need their nested `.git` preserved
-for future diff review. The parent repo has no remote, so nothing is pushed.)
-
-On the NAS:
-
-```sh
+git clone https://github.com/HectorMtz22/tidal-addon /opt/tidal-addon
 cd /opt/tidal-addon
-./tests/hardening.sh          # builds nothing; asserts vendored code + image
-                              # (expected: the image check FAILs here — the image doesn't exist yet; source checks PASS)
+./tests/hardening.sh          # check 1 passes; image checks FAIL until built
+
+# Option A: build on the NAS (never build on the Mac)
 docker build -f docker/Dockerfile -t orpheusdl:hardened .
-./tests/hardening.sh          # now everything passes
+./tests/hardening.sh          # all five checks PASS
+
+# Option B: pull the CI-published image instead of building
+docker pull ghcr.io/hectormtz22/tidal-addon:latest
+# then point deploy/orpheusdl-compose.truenas.yml at
+# ghcr.io/hectormtz22/tidal-addon:latest instead of orpheusdl:hardened, and run:
+ORPHEUS_IMAGE=ghcr.io/hectormtz22/tidal-addon:latest ./tests/hardening.sh
 ```
+
+(The previous rsync path still works if you ever want an unpublished copy:
+`rsync -a /Users/kilo/dev/tidal-addon/ nas:/opt/tidal-addon/`. Do not exclude
+`.git`.)
 
 ## 2b. Alternative: build on the Mac, load on the NAS
 
@@ -93,10 +103,13 @@ Mac or via exec):
 Then inside orpheus: paste album/playlist URLs, pick from search results.
 Files land in `Artist/Album/` folders on `tank/music`.
 
-## 6. Navidrome (catalog app)
+## 6. Navidrome (catalog app or custom app)
 
-- Apps → Discover Apps → Navidrome → install; mount `/mnt/tank/music`
-  (READ-ONLY), port 4533 (default).
+- Option A (catalog): Apps → Discover Apps → Navidrome → install; mount
+  `/mnt/tank/music` (READ-ONLY), port 4533 (default).
+- Option B (YAML): Apps → Discover Apps → ⋮ → Install via YAML → paste
+  `deploy/navidrome-compose.truenas.yml` — music path, port 4533, read-only
+  mount and scan schedule are already configured in the file.
 - Create the Subsonic user in Navidrome's UI (its own user/pass).
 - Verify: `curl http://<nas-ip>:4533/ping` → `{"status":"ok"}` (or Tailscale IP).
 - iPhone: install play:Sub / Amperfy / Symfonium → add server
