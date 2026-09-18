@@ -23,23 +23,34 @@ Repo: https://github.com/HectorMtz22/youtube-addon (public). Local: /Users/kilo/
 - Deployment doc: docs/RUNBOOK.md (TrueNAS custom-app section + plain Docker + iPhone verification checklist).
 - Spec + plan kept locally ONLY (gitignored): docs/superpowers/spec-2026-09-17.md, plan-2026-09-17.md.
 
+## Completed work — tidal-archive (local-only repo, merged to main)
+Repo: /Users/kilo/dev/tidal-addon (git, NO remote — never push; vendored code has no license).
+- Vendors the reviewed OrpheusDL framework (yarrm80s/orpheusdl @ a45ff47) and Dniel97/orpheusdl-tidal @ 0d805ff as nested git clones with TLS-hardening commits on top (CURL_CA_BUNDLE, disable_warnings, verify=False all removed; also mqa_identifier_python vendored @ ff0c9f1).
+- docker/Dockerfile: python:3.11-slim, ffmpeg, uid 1000, sleep infinity; build on NAS with `-f docker/Dockerfile -t orpheusdl:hardened .` (Docker is NEVER run on the Mac — user directive).
+- deploy/orpheusdl-compose.truenas.yml (custom app; no ports, cap_drop ALL, read_only, tmpfs, user 1000); tests/hardening.sh (check 1 = source TLS gate, runs anywhere; checks 2–5 need the image, run on NAS).
+- docs/RUNBOOK.md (datasets, NAS build, TV-only login, chmod 700/600, settings download_path=/orpheus/music/, Navidrome catalog app + iPhone checklist, leak response) + docs/review-workflow.md (mandatory upstream diff review) + VENDOR.md (pinned refs + hardening record).
+- Spec + plan: docs/superpowers/specs/2026-09-18-tidal-archive-design.md, docs/superpowers/plans/2026-09-18-tidal-archive.md. Full subagent-driven execution with reviews; final review fixes merged.
+
 ## PENDING (user actions, not done yet)
+1. Deploy tidal-archive on TrueNAS per docs/RUNBOOK.md §1–§6 (datasets → rsync → NAS build + hardening.sh all-PASS → custom app YAML → TV login → chmod → downloads → Navidrome catalog app).
+2. Navidrome: mount tank/music read-only, port 4533, Subsonic creds; iPhone client via Tailscale.
+3. Archive essential Tidal library EARLY (old API may close with Widevine rollout).
+
+## PENDING — youtube-addon (carried from previous session)
 1. Flip ghcr container package to public: GitHub profile -> Packages -> youtube-addon -> Package settings -> Change visibility -> Public. (Repo is public; the package is still private.)
 2. Deploy on TrueNAS: Apps -> Discover Apps -> Install via YAML -> paste deploy/docker-compose.truenas.yml, set ADDON_TOKEN (openssl rand -hex 16), Web UI port 7000. Verify curls in runbook.
 3. Stremio iOS: install via http://<nas-ip>:7000/<token>/manifest.json; run the runbook iPhone checklist. NOTE: the "HLS-first" POC verdict is PROVISIONAL — the cross-IP (iPhone/Tailscale) playback check was never performed; if HLS fails cross-IP, extraction URLs are IP-bound and fMP4 becomes the ladder top.
 
-## Tidal library plan (researched, NOT started — no repo yet)
-Decision made by user: archive Tidal (paid account) to NAS via OrpheusDL + Dniel97/orpheusdl-tidal, served by Navidrome (Subsonic; iOS clients: play:Sub/Amperfy/Symfonium). Jellyfin possible alternative.
-Full security review WAS DONE (two subagent reviews, all code read): no malicious code in framework (yarrm80s/orpheusdl, frozen Dec 2023) or module (Dniel97/orpheusdl-tidal, active Dec 2025). All outbound = Tidal domains only. BUT mandatory hardening before first run:
-1. Restore TLS: delete `os.environ['CURL_CA_BUNDLE'] = ''` at orpheus/core.py:9 (plus adjacent urllib3.disable_warnings); remove `verify=False` in utils/utils.py:47 and modules/tidal/interface.py:841.
-2. Dedicated unprivileged user/container; after first login: chmod 700 config/ && chmod 600 config/loginstorage.bin (plaintext pickle of access+refresh tokens = account-equivalent; also pickle.load = RCE if writable by others).
-3. Login via TV/device-code flow ONLY (never Mobile option — that one takes your password in-terminal).
-4. Egress allowlist: auth.tidal.com, api.tidal.com, resources.tidal.com, tidal.com, dd.tidal.com only.
-5. Only install modules whose source was read; re-check diffs on git pull (modules/ = arbitrary code execution by design).
-6. Leak response: change Tidal password + sign out all devices (invalidates refresh tokens).
-License reality: NO license file in either repo ("all rights reserved" formally; source-available in practice) -> own a local fork rather than depend on upstream.
-Structural risk (accepted by user): Tidal is rolling Widevine DRM via new API; the old API these tools use may close at any time. Download essential library soon. ToS violation risk = account action.
-NOT decided yet: exact TrueNAS deployment shape for OrpheusDL+Navidrome (containers, dataset layout, Navidrome chosen over Jellyfin for music).
+## Tidal plan (IMPLEMENTED — see Completed work above)
+Decision made by user: archive Tidal (paid account) to NAS via OrpheusDL + Dniel97/orpheusdl-tidal, served by Navidrome (Subsonic; iOS clients: play:Sub/Amperfy/Symfonium). Full source review WAS DONE (two subagent reviews, all code read): no malicious code. Security decisions preserved in docs/superpowers/specs/2026-09-18-tidal-archive-design.md:
+1. TLS restored in vendored code (see VENDOR.md hardening record).
+2. Unprivileged uid 1000 container; post-login chmod 700 config/ && 600 loginstorage.bin (plaintext pickle of access+refresh tokens = account-equivalent; pickle.load = RCE if writable by others).
+3. Login via TV/device-code flow ONLY (never Mobile option — takes password in-terminal).
+4. Egress = Tidal domains only, by construction (no pip/git/network in image; updates via reviewed vendor merges on the Mac — docs/review-workflow.md).
+5. Only vendored modules whose source was read; re-check diffs on upstream pull.
+6. Leak response in RUNBOOK §8: change Tidal password + sign out all devices (invalidates refresh tokens).
+License reality: NO license file in either repo -> local fork only, never publish.
+Structural risk (accepted): Tidal Widevine rollout may close the old API any time — archive essentials early. ToS risk = account action.
 
 ## Tool landscape decisions (do not re-litigate)
 - Piped: mainline dead (SABR); Invidious oscillates; not our path.
