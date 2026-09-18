@@ -6,7 +6,9 @@ services:
     image: orpheusdl:hardened
     container_name: orpheusdl
     user: "1000:1000"
-    command: ["sh", "-c", "mkdir -p /tmp/extensions /tmp/temp && sleep infinity"]
+    # No command override: the image ENTRYPOINT pre-creates /tmp dirs, then
+    # the image CMD idles (sleep infinity). Overriding command here would
+    # bypass the Dockerfile CMD — leave it absent.
     read_only: true
     tmpfs:
       - /tmp

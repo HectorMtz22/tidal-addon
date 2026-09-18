@@ -22,4 +22,8 @@ RUN useradd -u 1000 -m orpheus \
 USER orpheus
 WORKDIR /orpheus
 
-CMD ["sh", "-c", "mkdir -p /tmp/extensions /tmp/temp && sleep infinity"]
+# Entrypoint pre-creates the writable first-run dirs (mkdir does not follow
+# trailing symlinks, and TrueNAS middleware can override CMD) before exec'ing
+# whatever command is set.
+ENTRYPOINT ["/bin/sh", "-c", "mkdir -p /tmp/extensions /tmp/temp; exec \"$@\"", "--"]
+CMD ["sleep", "infinity"]

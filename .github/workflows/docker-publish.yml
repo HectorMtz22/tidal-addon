@@ -40,6 +40,19 @@ jobs:
         run: ./tests/hardening.sh
         # All five checks must pass before anything is published.
 
+      - name: First-run smoke (read-only root, symlinked dirs)
+        run: |
+          set -o pipefail
+          # An overridden command must still get the dirs (ENTRYPOINT runs first)
+          docker run --rm $IMAGE_LC:${GITHUB_SHA} sh -c '[ -d /tmp/extensions ] && [ -d /tmp/temp ]'
+          # The app itself must not hit read-only / exists errors at startup
+          out="$(docker run --rm $IMAGE_LC:${GITHUB_SHA} python orpheus.py 2>&1 < /dev/null)" || true
+          echo "$out"
+          if echo "$out" | grep -E "Read-only file system|FileExistsError"; then
+            echo "FAIL: app startup hit filesystem errors"; exit 1
+          fi
+          echo "startup smoke OK"
+
       - name: Push image
         if: github.ref == 'refs/heads/main'
         run: |
