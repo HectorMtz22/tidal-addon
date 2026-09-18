@@ -1,0 +1,49 @@
+name: docker-publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-test-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Source-level hardening gate
+        run: ./tests/hardening.sh --source-only
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: docker build -f docker/Dockerfile -t $IMAGE:latest -t $IMAGE:${{ github.sha }} .
+
+      - name: Full hardening suite (requires the image)
+        run: ./tests/hardening.sh
+        # All five checks must pass before anything is published.
+
+      - name: Push image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker push $IMAGE:latest
+          docker push $IMAGE:${{ github.sha }}
+
+      # First push creates the package PRIVATE. Flip it once in the UI:
+      # GitHub profile -> Packages -> tidal-addon -> Package settings ->
+      # Change visibility -> Public. Later pushes keep the chosen visibility.

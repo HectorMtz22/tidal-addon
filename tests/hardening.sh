@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # Hardening assertions for the orpheusdl:hardened image.
+# Usage: ./tests/hardening.sh [--source-only]
+#   --source-only  run check 1 only (no docker needed; CI pre-build gate)
 # Exit 0 = all pass. Any FAIL exits 1.
 set -u
 cd "$(dirname "$0")/.."
+
+SOURCE_ONLY=0
+[ "${1:-}" = "--source-only" ] && SOURCE_ONLY=1
 
 fail() { echo "FAIL: $1"; exit 1; }
 pass() { echo "PASS: $1"; }
@@ -14,6 +19,8 @@ grep -rn "CURL_CA_BUNDLE\|disable_warnings\|verify=False" vendor \
   --include='*.py' --exclude-dir=.git --exclude-dir=__pycache__ >/dev/null 2>&1 \
   && fail "insecure TLS code still present in vendored sources"
 pass "no TLS-stripping code in vendored sources"
+
+[ "$SOURCE_ONLY" = "1" ] && { echo "Source-only mode: check 1 passed."; exit 0; }
 
 # 2. Image exists
 docker image inspect orpheusdl:hardened > /dev/null 2>&1 || fail "image orpheusdl:hardened not built"
