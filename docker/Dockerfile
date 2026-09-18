@@ -25,5 +25,8 @@ WORKDIR /orpheus
 # Entrypoint pre-creates the writable first-run dirs (mkdir does not follow
 # trailing symlinks, and TrueNAS middleware can override CMD) before exec'ing
 # whatever command is set.
+ENV HOME=/orpheus \
+    PYTHONDONTWRITEBYTECODE=1
+
 ENTRYPOINT ["/bin/sh", "-c", "mkdir -p /tmp/extensions /tmp/temp; exec \"$@\"", "--"]
 CMD ["sleep", "infinity"]

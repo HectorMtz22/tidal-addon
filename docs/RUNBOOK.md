@@ -97,13 +97,16 @@ treat it as account-equivalent.
 
 ## 5. Point downloads at the music dataset
 
-On first run the framework generated `config/settings.py`. Edit it (from the
-Mac or via exec):
+On first run the framework generated `config/settings.json` (JSON, not .py).
+Edit it (from the Mac or via exec) so the two keys read exactly:
 
+```json
+"download_path": "/orpheus/music/",
+"download_quality": "hifi"
 ```
-"download_path": "/orpheus/music/"
-"download_quality": "hifi"     # already the default; FLAC
-```
+
+(Valid JSON: no trailing commas. The default `"./downloads/"` would hit the
+container's read-only root and crash with `[Errno 30]`.)
 
 Then inside orpheus: paste album/playlist URLs, pick from search results.
 Files land in `Artist/Album/` folders on `tank/music`.
