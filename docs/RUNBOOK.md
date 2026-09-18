@@ -7,19 +7,19 @@ in the terminal).
 ## 1. Datasets (TrueNAS shell or UI)
 
 ```sh
-zfs create tank/music
-zfs create -p tank/apps/orpheusdl/config
+zfs create drive/music
+zfs create -p drive/orpheusdl/config
 ```
 
-If the pool is not `tank`, substitute your pool name everywhere (including
+If the pool is not `drive`, substitute your pool name everywhere (including
 deploy/orpheusdl-compose.truenas.yml).
 
 Set ownership for the container's uid 1000:
 
 ```sh
-chown -R 1000:1000 /mnt/tank/apps/orpheusdl/config
+chown -R 1000:1000 /mnt/drive/orpheusdl/config
 # container uid 1000 needs write access:
-chown 1000:1000 /mnt/tank/music
+chown 1000:1000 /mnt/drive/music
 ```
 
 ## 2. Get the repo + image onto the NAS
@@ -85,11 +85,11 @@ docker exec -it orpheusdl python orpheus.py
 - After login, immediately lock the credential file down:
 
 ```sh
-chmod 700 /mnt/tank/apps/orpheusdl/config
-chmod 600 /mnt/tank/apps/orpheusdl/config/loginstorage.bin
+chmod 700 /mnt/drive/orpheusdl/config
+chmod 600 /mnt/drive/orpheusdl/config/loginstorage.bin
 
-stat -c '%a' /mnt/tank/apps/orpheusdl/config                  # expect 700
-stat -c '%a' /mnt/tank/apps/orpheusdl/config/loginstorage.bin # expect 600
+stat -c '%a' /mnt/drive/orpheusdl/config                  # expect 700
+stat -c '%a' /mnt/drive/orpheusdl/config/loginstorage.bin # expect 600
 ```
 
 `loginstorage.bin` is a plaintext pickle of your Tidal access+refresh tokens —
@@ -109,12 +109,12 @@ Edit it (from the Mac or via exec) so the two keys read exactly:
 container's read-only root and crash with `[Errno 30]`.)
 
 Then inside orpheus: paste album/playlist URLs, pick from search results.
-Files land in `Artist/Album/` folders on `tank/music`.
+Files land in `Artist/Album/` folders on `drive/music`.
 
 ## 6. Navidrome (catalog app or custom app)
 
 - Option A (catalog): Apps → Discover Apps → Navidrome → install; mount
-  `/mnt/tank/music` (READ-ONLY), port 4533 (default).
+  `/mnt/drive/music` (READ-ONLY), port 4533 (default).
 - Option B (YAML): Apps → Discover Apps → ⋮ → Install via YAML → paste
   `deploy/navidrome-compose.truenas.yml` — music path, port 4533, read-only
   mount and scan schedule are already configured in the file.

@@ -14,8 +14,8 @@ services:
       - ND_ENABLETRANSCODINGCONFIG=true
       - ND_SCANSCHEDULE=1m
     volumes:
-      - /mnt/tank/music:/music:ro
-      - /mnt/tank/apps/navidrome/data:/data
+      - /mnt/drive/music:/music:ro
+      - /mnt/drive/apps/navidrome/data:/data
     cap_drop:
       - ALL
     security_opt:

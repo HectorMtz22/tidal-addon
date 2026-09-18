@@ -20,5 +20,5 @@ services:
       - no-new-privileges:true
     restart: unless-stopped
     volumes:
-      - /mnt/tank/music:/orpheus/music
-      - /mnt/tank/apps/orpheusdl/config:/orpheus/config
+      - /mnt/drive/music:/orpheus/music
+      - /mnt/drive/orpheusdl/config:/orpheus/config
