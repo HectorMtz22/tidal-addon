@@ -402,4 +402,14 @@ def orpheus_core_download(orpheus_session: Orpheus, media_to_download, third_par
                 else:
                     raise Exception(f'\tUnknown media type "{mediatype}"')
 
-    if os.path.exists('temp'): shutil.rmtree('temp')
+    if os.path.islink('temp'):
+        temp_dir = os.path.realpath('temp')
+        if os.path.isdir(temp_dir):
+            for entry in os.listdir(temp_dir):
+                entry_path = os.path.join(temp_dir, entry)
+                if os.path.isdir(entry_path) and not os.path.islink(entry_path):
+                    shutil.rmtree(entry_path)
+                else:
+                    os.remove(entry_path)
+    elif os.path.isdir('temp'):
+        shutil.rmtree('temp')
