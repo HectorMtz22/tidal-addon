@@ -342,30 +342,26 @@ tests/
 
 This keeps nested `.git` dirs out of the image and the context small.
 
-- [ ] **Step 5: Build the image**
+- [ ] **Step 5: Build the image — NAS-SIDE ONLY (do not run Docker on the Mac)**
+
+Building and verification happen on the NAS during deployment (RUNBOOK §2):
 
 ```bash
-cd /Users/kilo/dev/tidal-addon
-docker build -t orpheusdl:hardened .
+docker build -f docker/Dockerfile -t orpheusdl:hardened .   # run on the NAS
 ```
 
-Expected: build succeeds; final stages show `useradd` and `pip install` completing without network errors.
+Note the `-f docker/Dockerfile` form: build context is the repo root. Expected: build succeeds; final stages show `useradd` and `pip install` completing without network errors.
 
-- [ ] **Step 6: Smoke-test the module import inside the image**
+- [ ] **Step 6: Smoke-test the module import inside the image (NAS-side)**
 
 ```bash
 docker run --rm orpheusdl:hardened python -c \
   "import sys; sys.path.insert(0, '/orpheus'); from modules.tidal.interface import module_information as mi; assert mi.service_name == 'TIDAL', mi.service_name; print('module import OK')"
 ```
 
-Expected: `module import OK`. If it fails with `ModuleNotFoundError`, a transitive dep is missing from `requirements.lock` — regenerate the lock (Step 2) from a session that also installs the module, then rebuild:
+Expected: `module import OK`. If it fails with `ModuleNotFoundError`, a transitive dep is missing from `requirements.lock` — regenerate the lock (Step 2) from a session that also installs the module, then rebuild. Only regenerate if Step 6 actually failed — do not pre-optimize.
 
-```bash
-docker run --rm -v "$PWD/vendor/orpheusdl-tidal:/tmp/tidal" python:3.11-slim \
-  sh -c 'pip install --quiet -r /tmp/docker/requirements.txt 2>/dev/null; pip freeze | sort'
-```
-
-Only regenerate if Step 6 actually failed — do not pre-optimize.
+If Docker is unavailable in the implementation environment, Step 7 commits the files unexecuted and Steps 5–6 transfer to the NAS deployment (RUNBOOK §2 + tests/hardening.sh from Task 4 covers both). Record the transfer in the plan ledger.
 
 - [ ] **Step 7: Commit**
 
@@ -429,13 +425,13 @@ pass "ffmpeg present in image"
 echo "All hardening checks passed."
 ```
 
-- [ ] **Step 2: Run it**
+- [ ] **Step 2: Run it — NAS-SIDE ONLY (requires the built image)**
 
 ```bash
 chmod +x tests/hardening.sh && ./tests/hardening.sh
 ```
 
-Expected: five `PASS` lines and "All hardening checks passed." If check 1 fails, Tasks 1–2 fixes were not applied correctly — fix the vendored code first.
+This script needs `orpheusdl:hardened` (check 2–5) — run it on the NAS during deployment (RUNBOOK §2). In the implementation environment WITHOUT Docker: `docker image inspect`/`docker run` calls will fail — that is the expected result locally; checks 1 (source grep) must pass locally. If Docker IS available and the user has approved NAS-side-equivalent builds, all five PASS lines are expected. If check 1 fails, Tasks 1–2 fixes were not applied correctly — fix the vendored code first.
 
 - [ ] **Step 3: Commit**
 
@@ -542,7 +538,7 @@ chmod 775 /mnt/tank/music
 
 ## 2. Get the repo + image onto the NAS
 
-From the Mac (repo is local-only; no GitHub push):
+From the Mac (repo is local-only; no GitHub push, no Docker builds on the Mac):
 
 ```sh
 rsync -a /Users/kilo/dev/tidal-addon/ nas:/opt/tidal-addon/
@@ -562,10 +558,8 @@ docker build -t orpheusdl:hardened .
 
 ## 2b. Alternative: build on the Mac, load on the NAS
 
-```sh
-docker build -t orpheusdl:hardened /Users/kilo/dev/tidal-addon
-docker save orpheusdl:hardened | ssh nas 'docker load'
-```
+Removed by ruling (2026-09-18): builds happen on the NAS only; the Mac is used
+for repo authoring and review, not Docker execution.
 
 ## 3. Install the custom app
 

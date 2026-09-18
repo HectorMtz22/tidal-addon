@@ -4,3 +4,5 @@
 docs/
 deploy/
 tests/
+**/__pycache__
+**/*.pyc

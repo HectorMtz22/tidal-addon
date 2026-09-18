@@ -1,5 +1,5 @@
 # OrpheusDL (hardened vendored fork) — TrueNAS custom app.
-# Build the image on the NAS first: docker build -t orpheusdl:hardened <repo-dir>
+# Build the image on the NAS first: docker build -f docker/Dockerfile -t orpheusdl:hardened <repo-dir>
 # No ports: exec-driven only (docker exec -it orpheusdl python orpheus.py).
 services:
   orpheusdl:

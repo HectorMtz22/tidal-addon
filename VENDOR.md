@@ -12,6 +12,12 @@ This repo and its vendored code are LOCAL-ONLY — never publish, never push.
 TLS hardening is committed on top of each pinned snapshot:
 - framework: remove `CURL_CA_BUNDLE` env deletion + `urllib3.disable_warnings` (orpheus/core.py),
   remove `verify=False` (utils/utils.py:47).
-- module: remove `verify=False` (interface.py:841).
+- module: remove `verify=False` (interface.py:841); remove `urllib3.disable_warnings` +
+  unused `import urllib3` (tidal_api.py).
+
+The `mqa_identifier_python` snapshot was vendored as files WITHOUT git history:
+future updates require re-cloning upstream and a full re-review. The stale
+`.gitmodules` inside the tidal clone refers to that vendored-as-files snapshot
+and should be ignored — never run `git submodule update` there.
 
 Any future change requires the diff review in docs/review-workflow.md first.

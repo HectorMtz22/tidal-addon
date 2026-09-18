@@ -8,11 +8,11 @@ fail() { echo "FAIL: $1"; exit 1; }
 pass() { echo "PASS: $1"; }
 
 # 1. No TLS-stripping code anywhere in vendored sources
-if grep -rn "CURL_CA_BUNDLE\|disable_warnings\|verify=False" \
-    vendor/orpheusdl-framework/orpheus vendor/orpheusdl-framework/utils \
-    vendor/orpheusdl-tidal/interface.py vendor/orpheusdl-tidal/tidal_api.py 2>/dev/null; then
-  fail "insecure TLS code still present in vendored sources"
-fi
+[ -d vendor/orpheusdl-framework/orpheus ] || fail "vendor/orpheusdl-framework/orpheus missing — vendored tree absent or renamed"
+[ -d vendor/orpheusdl-tidal ] || fail "vendor/orpheusdl-tidal missing — vendored tree absent or renamed"
+grep -rn "CURL_CA_BUNDLE\|disable_warnings\|verify=False" vendor \
+  --include='*.py' --exclude-dir=.git --exclude-dir=__pycache__ >/dev/null 2>&1 \
+  && fail "insecure TLS code still present in vendored sources"
 pass "no TLS-stripping code in vendored sources"
 
 # 2. Image exists

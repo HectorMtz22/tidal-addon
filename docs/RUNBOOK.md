@@ -18,9 +18,8 @@ Set ownership for the container's uid 1000:
 
 ```sh
 chown -R 1000:1000 /mnt/tank/apps/orpheusdl/config
-# tank/music can stay root-owned; container uid 1000 needs write access:
-chmod 775 /mnt/tank/music
-# or, cleaner: chown 1000:1000 /mnt/tank/music
+# container uid 1000 needs write access:
+chown 1000:1000 /mnt/tank/music
 ```
 
 ## 2. Get the repo + image onto the NAS
@@ -72,6 +71,9 @@ docker exec -it orpheusdl python orpheus.py
 ```sh
 chmod 700 /mnt/tank/apps/orpheusdl/config
 chmod 600 /mnt/tank/apps/orpheusdl/config/loginstorage.bin
+
+stat -c '%a' /mnt/tank/apps/orpheusdl/config                  # expect 700
+stat -c '%a' /mnt/tank/apps/orpheusdl/config/loginstorage.bin # expect 600
 ```
 
 `loginstorage.bin` is a plaintext pickle of your Tidal access+refresh tokens —
