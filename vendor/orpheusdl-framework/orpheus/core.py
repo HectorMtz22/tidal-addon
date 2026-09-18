@@ -41,7 +41,7 @@ class Orpheus:
                 "separate_tracks_skip_downloaded": True
             },
             "formatting": {
-                "album_format": "{name}{explicit}",
+                "album_format": "{artist}/{name}{explicit}",
                 "playlist_format": "{name}{explicit}",
                 "track_filename_format": "{track_number}. {name}",
                 "single_full_path_format": "{name}",
