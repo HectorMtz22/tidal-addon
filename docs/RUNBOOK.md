@@ -38,6 +38,7 @@ On the NAS:
 ```sh
 cd /opt/tidal-addon
 ./tests/hardening.sh          # builds nothing; asserts vendored code + image
+                              # (expected: the image check FAILs here — the image doesn't exist yet; source checks PASS)
 docker build -f docker/Dockerfile -t orpheusdl:hardened .
 ./tests/hardening.sh          # now everything passes
 ```

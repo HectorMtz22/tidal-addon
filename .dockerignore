@@ -6,3 +6,4 @@ deploy/
 tests/
 **/__pycache__
 **/*.pyc
+vendor/orpheusdl-framework/modules/example

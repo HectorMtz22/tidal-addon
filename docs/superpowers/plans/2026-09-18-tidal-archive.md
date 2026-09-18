@@ -457,7 +457,7 @@ Create `/Users/kilo/dev/tidal-addon/deploy/orpheusdl-compose.truenas.yml`:
 
 ```yaml
 # OrpheusDL (hardened vendored fork) — TrueNAS custom app.
-# Build the image on the NAS first: docker build -t orpheusdl:hardened <repo-dir>
+# Build the image on the NAS first: docker build -f docker/Dockerfile -t orpheusdl:hardened <repo-dir>
 # No ports: exec-driven only (docker exec -it orpheusdl python orpheus.py).
 services:
   orpheusdl:
@@ -532,8 +532,7 @@ Set ownership for the container's uid 1000:
 ```sh
 chown -R 1000:1000 /mnt/tank/apps/orpheusdl/config
 # tank/music can stay root-owned; container uid 1000 needs write access:
-chmod 775 /mnt/tank/music
-# or, cleaner: chown 1000:1000 /mnt/tank/music
+chown 1000:1000 /mnt/tank/music
 ```
 
 ## 2. Get the repo + image onto the NAS
@@ -552,7 +551,7 @@ On the NAS:
 ```sh
 cd /opt/tidal-addon
 ./tests/hardening.sh          # builds nothing; asserts vendored code + image
-docker build -t orpheusdl:hardened .
+docker build -f docker/Dockerfile -t orpheusdl:hardened .
 ./tests/hardening.sh          # now everything passes
 ```
 
