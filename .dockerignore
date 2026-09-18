@@ -1,0 +1,6 @@
+**/.git
+**/config
+**/downloads
+docs/
+deploy/
+tests/
