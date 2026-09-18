@@ -10,8 +10,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /orpheus/extensions
-      - /orpheus/temp
+      # extensions/ and temp/ are symlinks into /tmp (baked into the image),
+      # so the writable area is covered by this single tmpfs entry.
     cap_drop:
       - ALL
     security_opt:

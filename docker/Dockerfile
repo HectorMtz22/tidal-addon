@@ -14,7 +14,10 @@ RUN pip install --no-cache-dir -r /tmp/requirements.lock \
 
 RUN useradd -u 1000 -m orpheus \
  && mkdir -p /orpheus/config /orpheus/music \
- && chown -R orpheus:orpheus /orpheus
+ && chown -R orpheus:orpheus /orpheus \
+ && rmdir /orpheus/extensions /orpheus/temp 2>/dev/null || true \
+ && ln -s /tmp/extensions /orpheus/extensions \
+ && ln -s /tmp/temp /orpheus/temp
 
 USER orpheus
 WORKDIR /orpheus
