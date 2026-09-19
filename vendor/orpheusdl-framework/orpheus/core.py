@@ -74,7 +74,7 @@ class Orpheus:
             },
             "playlist": {
                 "save_m3u": True,
-                "paths_m3u": "absolute",
+                "paths_m3u": "relative",
                 "extended_m3u": True
             },
             "advanced": {
