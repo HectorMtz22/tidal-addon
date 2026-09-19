@@ -81,21 +81,25 @@ class Downloader:
         playlist_path = self.path + self.global_settings['formatting']['playlist_format'].format(**playlist_tags)
         # fix path byte limit
         playlist_path = fix_byte_limit(playlist_path) + '/'
-        os.makedirs(playlist_path, exist_ok=True)
-        
-        if playlist_info.cover_url:
-            self.print('Downloading playlist cover')
-            download_file(playlist_info.cover_url, f'{playlist_path}cover.{playlist_info.cover_type.name}', artwork_settings=self._get_artwork_settings())
-        
-        if playlist_info.animated_cover_url and self.global_settings['covers']['save_animated_cover']:
-            self.print('Downloading animated playlist cover')
-            download_file(playlist_info.animated_cover_url, playlist_path + 'cover.mp4', enable_progress_bar=True)
-        
-        if playlist_info.description:
-            with open(playlist_path + 'description.txt', 'w', encoding='utf-8') as f: f.write(playlist_info.description)
+        save_m3u = self.global_settings['playlist']['save_m3u']
+        if save_m3u:
+            # the playlist folder only exists to hold the cover/description/m3u;
+            # tracks themselves go to their own Artist/Album location
+            os.makedirs(playlist_path, exist_ok=True)
+
+            if playlist_info.cover_url:
+                self.print('Downloading playlist cover')
+                download_file(playlist_info.cover_url, f'{playlist_path}cover.{playlist_info.cover_type.name}', artwork_settings=self._get_artwork_settings())
+
+            if playlist_info.animated_cover_url and self.global_settings['covers']['save_animated_cover']:
+                self.print('Downloading animated album cover')
+                download_file(playlist_info.animated_cover_url, album_path + 'cover.mp4', enable_progress_bar=True)
+
+            if playlist_info.description:
+                with open(playlist_path + 'description.txt', 'w', encoding='utf-8') as f: f.write(playlist_info.description)
 
         m3u_playlist_path = None
-        if self.global_settings['playlist']['save_m3u']:
+        if save_m3u:
             if self.global_settings['playlist']['paths_m3u'] not in {"absolute", "relative"}:
                 raise ValueError(f'Invalid value for paths_m3u: "{self.global_settings["playlist"]["paths_m3u"]}",'
                                  f' must be either "absolute" or "relative"')
