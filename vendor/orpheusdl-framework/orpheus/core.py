@@ -42,7 +42,7 @@ class Orpheus:
             },
             "formatting": {
                 "album_format": "{artist}/{name}",
-                "playlist_format": "{artist}/{name}",
+                "playlist_format": "{name}",
                 "track_filename_format": "{track_number}. {name}",
                 "single_full_path_format": "{name}",
                 "enable_zfill": True,
